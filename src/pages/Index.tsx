@@ -1,13 +1,67 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState, useMemo } from 'react';
+import { Header } from '../components/Header';
+import { Hero } from '../components/Hero';
+import { ProductFilters } from '../components/ProductFilters';
+import { ProductGrid } from '../components/ProductGrid';
+import { Footer } from '../components/Footer';
+import { CartProvider } from '../contexts/CartContext';
+import { products } from '../data/products';
 
 const Index = () => {
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [sortBy, setSortBy] = useState('name');
+
+  console.log('Rendering Index page with', products.length, 'products');
+  console.log('Selected category:', selectedCategory);
+  console.log('Sort by:', sortBy);
+
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = products;
+    
+    // Filtrar por categoría
+    if (selectedCategory !== 'Todos') {
+      filtered = products.filter(product => product.category === selectedCategory);
+    }
+    
+    // Ordenar
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+    
+    console.log('Filtered and sorted products:', sorted.length);
+    return sorted;
+  }, [selectedCategory, sortBy]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <CartProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <Hero />
+        
+        <main className="container mx-auto px-4 py-8">
+          <ProductFilters
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+          
+          <ProductGrid products={filteredAndSortedProducts} />
+        </main>
+        
+        <Footer />
       </div>
-    </div>
+    </CartProvider>
   );
 };
 
